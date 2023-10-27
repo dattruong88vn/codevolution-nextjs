@@ -1,0 +1,33 @@
+NEXTJS
+
+    1. Tổng quan
+        1.1. NextJS là gì?
+            - Là một React Framework dùng cho Production.
+            - Quay lại đối với React
+                + React không có đầy đủ các chức năng cho một application để có thể deploy lên production.
+                + React chỉ là một thư viện xây dựng UI
+                + Bạn phải lựa chọn những tính năng khác để bổ sung cho react như routing, styling, authentication...
+            
+            - NextJS giúp React bổ sung những điều này
+                + Là một Framework sử dụng react để build UI
+                + Ngoài ra, có thêm nhiều tính năng khác cho phép bạn có đầy đủ mọi thứ đề build một ứng dụng lên production: như routing, styling, authentication, bundle optimization...
+                + Không cần cài đặt thêm các package khác. NextJS có tất cả mọi thứ.
+        
+        1.2. Tại sao học NextJS?
+            - Build react application lên production
+            - File-based routing
+            - Pre-rendering
+            - API routes 
+            - Support CSS module
+            - Authentication
+            - Dev and Prod build system
+
+    2. Routing
+        - Đối với React:
+            + Cài third party package (thường là react-router-dom).
+            + Tạo một file route.js để cấu hình routes
+            + Với mỗi route, tạo một Component, export nó, sau đó import vào file route.js và config một route mới với thuộc tính path.
+
+        - Trong NextJS:
+            + Khi thêm 1 file vào thư mục pages trong project, nó sẽ tự động trở thành một route
+            + Kết hợp với những cấu trúc folder, có thể định nghĩa ra nhiều loại route khác nhau.
