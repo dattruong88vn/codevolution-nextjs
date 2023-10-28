@@ -31,3 +31,131 @@ NEXTJS
         - Trong NextJS:
             + Khi thêm 1 file vào thư mục pages trong project, nó sẽ tự động trở thành một route
             + Kết hợp với những cấu trúc folder, có thể định nghĩa ra nhiều loại route khác nhau.
+
+    3. Pre-rendering:
+        - HTML content được tạo ra ngay từ server, khác với react sẽ được tạo ở client thông qua code javascript
+
+        - Mục đích:
+            + Tối ưu performance: không phải đợi code JS thực thi khi load page ở Browser.
+            + SEO
+
+        - Có 2 loại pre-rendering:
+            + Static Generation: HTML được tao khi Build
+            + Server Side Rendering: HTML được tạo khi có request từ client
+        
+    4. Static Generation
+        - Mặc định một file được tạo ra trong folder pages của nextJS sẽ là Static Generation.
+        - Khi hiển thị content của một page, nếu trong page đó có bất cứ Link tag nào của next/link (khi render hoặc scroll into view), thì data của page mà link đó điều hướng đến sẽ được pre-fetch.
+            + Ví dụ vào page blogList có 10 item
+            + Toàn bộ file JSON và javascript của các page blogDetail tương ứng sẽ được pre-
+        - Ngoài ra muốn fetch data vào page static generation, sử dụng method getStaticProps.
+
+        4.1. Function getStaticProps:
+            - Nhiệm vụ của function:
+                + Fetch API
+                + Fetch Data từ DB
+                + Readfile ...
+                + Làm tất cả chức năng của NodeJS
+                + Được thực thi ở server, không hiển thị bất cứ thông tin nào ở client
+
+            - Tham số: 
+                + context: là một object chứa các thông tin
+                    * params: nếu route là dynamic route
+                    ...
+            
+            - Giá trị trả về là một object chứa các key:
+                + props: (required) là một object chứa các key và value. Object này sẽ được truyền vào component của route đó thông qua props
+                + notFound: true | false: khi route chứa thông tin không tồn tại, có thể chuyển hướng sang page 404 bằng cách return về key notFound = true
+
+            - Khi áp dụng Static Generation cho dynamic route, ngoài function getStaticProps, cần kết hợp thêm function getStaticPaths
+
+        4.2. function getStaticPaths:
+            - Nhiệm vụ:
+                + Thông báo cho nextJS là những giá trị sẽ match với params trong dynamic route để nextjs có thể build ra file HTML tương ứng cho từng params
+                    * Ví dụ: 
+                        - page blogDetail cần có id của blog để fetchData
+                        - nextJS cần biết blog Id có thể là những giá trị nào để build, id = [1, 2, 3] --> build ra 3 file blogDetail/1, blogDetail/2, blogDetail/3
+
+            - Giá trị trả về là một object có các key:
+                + paths: là một array bao gồm các object, mỗi object chứa params là id tương ứng của các giá trị cần build
+                    * Ví dụ: 
+                        return {
+                            paths:[
+                                { params: { blogId: 1 } },
+                                { params: { blogId: 2 } },
+                                { params: { blogId: 3 } },
+                            ]
+                        }
+
+                + fallback: true | false | 'blocking'
+                    --> FALSE: 
+                        - Tác dụng: Tất cả các route có id nằm ngoài list blogId được trả về thông qua paths sẽ hiển thị page 404 khi truy cập.
+                        - Sử dụng: 
+                            + Khi ứng dụng có số lượng paths pre-rendering nhỏ
+                            + Và các pages không thường xuyên được thêm mới
+
+                    --> TRUE:
+                        - Tác dụng: Tất cả các route có id nằm ngoài list blogId được trả về thông qua paths sẽ hiển thị đúng content của nó thay vì page 404
+
+                        - Nguyên tắc hoạt động:
+                            + Khi request vào 1 route chưa được pre-rendering với fallback = true, server thay vì điều hướng về page 404 sẽ trả về 1 'fallback' page.
+                            + Đồng thời server cũng sẽ thực hiện static generate page đó, tạo ra file HTML và JSON, điều này bao gồm chạy lại function getStaticProps.
+                            + Sau khi build xong, browser sẽ nhận được JSON file, JSON file này sẽ tự động được truyền vào component để render ra page với nội dung mong muốn.
+                            + Client thay đổi hiển thị từ fallback page --> full page
+                            + Server lưu file HTML và JSON vừa được tạo ra vào build source để sử dụng cho những lần request sau.
+
+                        - Lưu ý:
+                            + Khi sử dụng fallback: true, props truyền vào page component từ function getStaticProps có thể bị undefined dẫn đến crash app.
+                            + Để conditional rendering theo giá trị của fallback, sử dụng useRouter:
+                                * const router = useRouter();
+                                * Check giá trị của router.isFallback
+                        
+                        - Sử dụng: 
+                            + Khi có số lượng static pages lớn.
+
+                    --> 'BLOCKING'
+                        - Tương tụ với TRUE
+                        - Khác biệt: Khi request vào 1 route chưa được static generation
+                            + TRUE: server trả về ngay lập tức fallback page (sử dụng router.isFallback để render html content), đồng thời thực hiện static generate HTML và JSON, sau đó trả file JSON về client để render full page
+                            + 'BLOCKING': server thực hiện build page (HTML và JSON), sau khi hoàn thành trả về page hoàn chỉnh cho client. Trong suốt quá trình này sẽ hiển thị loading trên browser.
+
+                        - Sử dụng: 
+                            + Khi không muốn hiển thị fallback page ở client
+                            + Một số crawler (trình thu thập thông tin) không hỗ trợ javascript, nên khi hiển thị fallback page rồi sau đó hiển thị full page sẽ gặp vấn đề.
+
+
+    4. Vấn đề của Static generation:
+        - Các issues:
+            + Thời gian build lâu
+            + Data có thể bị cũ, không cập nhật mới
+
+        - Khắc phục thông qua getStaticPaths
+            + Pre-render một ít pages khi build, số còn lại pre-render khi request.
+            + Nếu trường hợp, 90% là static page, 10% là dynamic thì phương án này ko hỗ trợ được nhiều.
+            + Một website e-commerce thông thường có 90% là dynamic, 10% là static. Nên có thể sử dụng getStaticPaths để giảm thời gian build, nhưng không thể fix được issue data bị cũ.
+
+        - Để khắc phục vấn đề này, nextJS cung cấp một technique được gọi là Incremental Static ReGeneration (ISR)
+            
+
+    5. Incremental Static ReGeneration (ISR)
+        - Tác dụng: 
+            + Cho phép bạn static generate một vài pages cụ thể mà không cần rebuild lại toàn bộ application.
+        - Cách thực hiện:
+            + Trong function getStaticProps, trong object được return bên cạnh key props, bổ sung thêm key revalidate
+            + Giá trị của key revalidate là số giây để 1 page re-generation.
+        
+        - Hoạt động:
+            + Request lần đầu tiên, server thực hiện static generate
+            + Trong khoảng thời gian nhỏ hơn revalidate, mọi request lên server đều trả về data được cache trước đó.
+            + Sau thời gian revalidate, request đầu tiên lên server sẽ vẫn nhận được data cache, đồng thời server tiến hành
+            regenerate và update ở server.
+            + Những request sau đó (vẫn nhở hơn revalidate) sẽ nhận được data mới.
+
+        - Lưu ý:
+            + Re-generation chỉ được thực hiện khi có 1 request sau khoàng thời gian revalidate
+            + Nếu chỉ có 1 user truy cập và không có bất kỳ user nào khác truy cập vào đúng page đó trong cả ngày, tuần thì quá trình re-generation sẽ ko xảy ra.
+            + Revalidate = 10s không có nghĩa là page sẽ tự động re-generation mỗi 10s
+            + Nếu quá trình re-generation failed thì HTML cache trước đó sẽ được server trả về cho đến khi nào quá trình re-generation thành công.
+
+            + Tuy nhiên, trong một số trường hợp, bạn không thể re-generation trong vòng một vài giây. Nên nextJS đã cung cấp thêm giải pháp Server Side Rendering
+
