@@ -159,3 +159,41 @@ NEXTJS
 
             + Tuy nhiên, trong một số trường hợp, bạn không thể re-generation trong vòng một vài giây. Nên nextJS đã cung cấp thêm giải pháp Server Side Rendering
 
+
+    6. Vấn đề khi sử dụng Static Generation kết hợp với ISR:
+        - Data không được fetch sau mỗi lần request
+            + Trong một số trường hợp vẫn nhận được data cũ.
+            + Ví dụ khi build 1 website, content của website thay đổi liên tục, các bài viết có thể được publish theo từng giây
+            + getStaticProps chỉ fetch data khi build nên không phù hợp với trường hợp này.
+            + getStaticPaths giúp chúng ta fetch data khi có request đầu tiên, nhưng sau đó vẫn cached và sử dụng cho các request tiếp theo.
+            + ISR có thể giúp chúng ta nếu thời gian revalidate là 1 giây. Tuy nhiên, chúng ta vẫn có thể không nhận được data mới nhất khi quá trình regeneration xử lý phía server.
+            + Phương án fetch data từ phía client cũng có thể lấy được data mới nhất nhưng lại ko tốt cho SEO
+        - Chúng ta không thể access vào request nếu mà page được generate lúc build
+            + Vấn đề xảy ra khi data cần fetch tuỳ theo user mà hiển thị khác nhau
+            + Ví dụ, khi fetch data cần truyền userID thì Static Generation sẽ hoàn toàn không phù hợp.
+
+    7. Server Side Rendering
+        - Chức năng:
+            + NextJS cho phép pre-render một page tại request time thay cho build time.
+            + NextJS sẽ generate HTML cho tất cả mọi request.
+            + SSR sử dụng khi cần fetch data theo request, hoặc fetch những data mang tính cá nhân (theo user...) mà vẫn đảm bảo SEO.
+
+        - Đặc điểm:
+            + Chỉ thực thi ở server side
+            + Không bundle vào file chunk và gửi về client
+            + Chỉ áp dụng cho page, ko áp dụng cho component
+            + Return về 1 object, object này bao gồm 1 key props (cũng là 1 obj) hoặc notFound (tương tự getStaticProps)
+            + Được thực thi khi có request lên server
+
+        - Cấu trúc:
+            + Tham số context:
+                * params: thông tin dynamic id và url
+                * req: Request
+                * res: Response
+                * query: thông tin dynamic id và query params trên url
+
+    8. Client Side Rendering
+        - Sử dụng:
+            + Trường hợp page Dashboard, bạn cần theo dõi các thông tin liên quan đến like, comment, follow, bài viết...
+            + Là private page, cần login, ko cần SEO, ko cần pre-render
+            
