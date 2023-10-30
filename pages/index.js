@@ -2,13 +2,15 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import Link from "next/link";
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 import styles from "@/styles/Home.module.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const { data: session } = useSession();
+  console.log(session);
   return (
     <>
       <Head>
@@ -18,10 +20,24 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <Link href={"/api/auth/signin"} passHref={true}>
-          <div>Login</div>
-          {/* <div onClick={e => {e.preventDefault(); signIn('github')}}>Login</div> */}
-        </Link>
+        {session ? (
+          // <Link href={"/api/auth/signout"} passHref={true}>
+          //   <div>Logout</div>
+          // </Link>
+          <div
+            onClick={(e) => {
+              e.preventDefault();
+              signOut();
+            }}
+          >
+            Logout
+          </div>
+        ) : (
+          <Link href={"/api/auth/signin"} passHref={true}>
+            <div>Login</div>
+          </Link>
+          /* <div onClick={e => {e.preventDefault(); signIn('github')}}>Login</div> */
+        )}
       </main>
     </>
   );
