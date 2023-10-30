@@ -197,3 +197,30 @@ NEXTJS
             + Trường hợp page Dashboard, bạn cần theo dõi các thông tin liên quan đến like, comment, follow, bài viết...
             + Là private page, cần login, ko cần SEO, ko cần pre-render
             
+
+    9. Preview mode:
+        - Giúp preview được page sau khi thay đổi data mà ko cần build lại toàn bộ project.
+        - Sử dụng cho pages static generation, áp dụng cho chức năng View Draft Before Publish trong các trang CMS
+        - Cách thực hiện:
+            + Tạo 1 file preview.js trong thư mục api (có thể đặt tên khác)
+            + Trong function hanlder nhận vào 2 tham số req và res, chạy câu lệnh:
+                res.setPreviewData();
+                res.redirect('any_route_to_preview');
+            + Lúc này trong cookie tự động set 2 key thể hiện chế độ preview được enable. 
+            + Khi truy cập vào 1 page có function getStaticProps, bạn sẽ thấy function này được gọi sau mỗi lần request, thay vì chỉ gọi lúc generation page.
+            + Để disable preview mode, tạo 1 api khác và thêm câu lệnh sau:
+                res.clearPreviewData();
+
+    
+    10. Authentication
+        - Nhắc đến Authentication là nhắc đến User, khi nhắc đến User thì có 2 điều cần quan tâm:
+            + Identity: xác minh user là ai (authentication)
+            + Access: xác định quyền hạn của user (authorization)
+
+        - NextJS là một fullstack application nên cần phải thực hiện
+            + Client-side authentication
+            + Server-side authentication
+            + API routes authentication
+
+        - Thư viện Next-Auth
+            + Cung cấp tất cả những thứ liên quan authentication cho NextJS
